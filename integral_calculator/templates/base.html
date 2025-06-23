@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Kalkulator Integral Numerik{% endblock %}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']]
+            }
+        };
+    </script>
+    <style>
+        body { 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+            min-height: 100vh; 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .card { 
+            border-radius: 15px; 
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1); 
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+        .btn-primary { 
+            background: linear-gradient(45deg, #667eea, #764ba2); 
+            border: none; 
+            transition: all 0.3s ease;
+        }
+        .btn-primary:hover { 
+            background: linear-gradient(45deg, #764ba2, #667eea); 
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        .btn-success {
+            background: linear-gradient(45deg, #28a745, #20c997);
+            border: none;
+            transition: all 0.3s ease;
+        }
+        .btn-success:hover {
+            background: linear-gradient(45deg, #20c997, #28a745);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        .navbar { 
+            background: rgba(255,255,255,0.1) !important; 
+            backdrop-filter: blur(10px); 
+            border-bottom: 1px solid rgba(255,255,255,0.2);
+        }
+        .result-card { 
+            background: rgba(255,255,255,0.95); 
+        }
+        .form-control:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+        }
+        .alert {
+            border-radius: 10px;
+            border: none;
+        }
+        .navbar-brand {
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+        .card-header {
+            border-radius: 15px 15px 0 0 !important;
+        }
+        .fade-in {
+            animation: fadeIn 0.5s ease-in;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container">
+            <a class="navbar-brand" href="/">
+                <i class="fas fa-calculator"></i> Kalkulator Integral
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <div class="navbar-nav ms-auto">
+                    <a class="nav-link" href="/"><i class="fas fa-home"></i> Home</a>
+                    <a class="nav-link" href="/trapesium"><i class="fas fa-chart-area"></i> Trapesium</a>
+                    <a class="nav-link" href="/simpson"><i class="fas fa-chart-line"></i> Simpson 1/3</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+    
+    <div class="container mt-4">
+        {% block content %}{% endblock %}
+    </div>
+    
+    <footer class="mt-5 py-4 text-center text-white">
+        <div class="container">
+            <p>&copy; FYRDS 2024 Kalkulator Integral Numerik</p>
+        </div>
+    </footer>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

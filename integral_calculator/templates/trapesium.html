@@ -1,0 +1,390 @@
+{% extends "base.html" %}
+{% block title %}Metode Trapesium - Kalkulator Integral Numerik{% endblock %}
+{% block content %}
+<div class="row fade-in">
+    <div class="col-12">
+        <div class="card mb-4">
+            <div class="card-header bg-primary text-white">
+                <h2 class="mb-0"><i class="fas fa-chart-area"></i> Metode Trapesium</h2>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-8">
+                        <p class="lead">Metode trapesium menggunakan trapesium untuk menghampiri area di bawah kurva fungsi.</p>
+                        <div class="alert alert-info">
+                            <h6><i class="fas fa-info-circle"></i> Formula Metode Trapesium:</h6>
+                            <div class="text-center my-3">
+                                $$\int_a^b f(x)dx \approx \frac{h}{2}[f(a) + 2\sum_{i=1}^{n-1}f(x_i) + f(b)]$$
+                            </div>
+                            <p class="mb-0">dimana $h = \frac{b-a}{n}$ adalah lebar setiap interval</p>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="alert alert-warning">
+                            <h6><i class="fas fa-lightbulb"></i> Tips:</h6>
+                            <ul class="mb-0 small">
+                                <li>Semakin besar nilai n, semakin akurat hasil</li>
+                                <li>Gunakan fungsi seperti: x**2, sin(x), exp(x)</li>
+                                <li>Pastikan fungsi terdefinisi pada interval [a,b]</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-4">
+        <div class="card">
+            <div class="card-header bg-light">
+                <h5 class="mb-0"><i class="fas fa-cogs"></i> Input Parameter</h5>
+            </div>
+            <div class="card-body">
+                <form id="trapeziumForm">
+                    <div class="mb-3">
+                        <label for="function" class="form-label"><i class="fas fa-function"></i> Fungsi f(x)</label>
+                        <input type="text" class="form-control" id="function" placeholder="Contoh: x**2, sin(x), exp(x)" value="x**2" required>
+                        <small class="form-text text-muted">Gunakan x sebagai variabel, ** untuk pangkat</small>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-6">
+                            <div class="mb-3">
+                                <label for="lower_bound" class="form-label">Batas Bawah (a)</label>
+                                <input type="number" class="form-control" id="lower_bound" step="any" value="0" required>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="mb-3">
+                                <label for="upper_bound" class="form-label">Batas Atas (b)</label>
+                                <input type="number" class="form-control" id="upper_bound" step="any" value="2" required>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="n_intervals" class="form-label">Jumlah Interval (n)</label>
+                        <input type="number" class="form-control" id="n_intervals" min="1" max="1000" value="10" required>
+                        <small class="form-text text-muted">Nilai n yang lebih besar = hasil lebih akurat</small>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="fas fa-calculator"></i> Hitung Integral
+                        <span class="loading spinner-border spinner-border-sm ms-2" role="status"></span>
+                    </button>
+                </form>
+                
+                <div class="mt-3">
+                    <button type="button" class="btn btn-outline-secondary btn-sm w-100" onclick="loadExample()">
+                        <i class="fas fa-lightbulb"></i> Muat Contoh
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-8">
+        <!-- Hasil Perhitungan -->
+        <div id="resultCard" class="card result-card d-none mb-4">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-chart-line"></i> Hasil Perhitungan</h5>
+            </div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-md-4">
+                        <h6>Hasil Trapesium</h6>
+                        <h4 id="trapResult">-</h4>
+                    </div>
+                    <div class="col-md-4">
+                        <h6>Hasil Analitik</h6>
+                        <h4 id="analyticalResult">-</h4>
+                    </div>
+                    <div class="col-md-4">
+                        <h6>Galat Relatif</h6>
+                        <h4 id="relativeError">-</h4>
+                    </div>
+                </div>
+                <div class="row mt-3">
+                    <div class="col-md-6">
+                        <small><strong>Galat Absolut:</strong> <span id="absoluteError">-</span></small>
+                    </div>
+                    <div class="col-md-6">
+                        <small><strong>Jumlah Interval:</strong> <span id="intervals">-</span></small>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Error Card -->
+        <div id="errorCard" class="card error-card d-none mb-4">
+            <div class="card-body">
+                <h5><i class="fas fa-exclamation-triangle"></i> Error</h5>
+                <p id="errorMessage" class="mb-0"></p>
+            </div>
+        </div>
+        
+        <!-- Grafik -->
+        <div class="card">
+            <div class="card-header bg-light">
+                <h5 class="mb-0"><i class="fas fa-chart-area"></i> Visualisasi Grafik</h5>
+            </div>
+            <div class="card-body">
+                <div class="chart-container">
+                    <canvas id="trapeziumChart"></canvas>
+                </div>
+                <div class="text-center mt-3">
+                    <small class="text-muted">
+                        <i class="fas fa-info-circle"></i> 
+                        Garis biru menunjukkan fungsi asli, area hijau menunjukkan approximasi trapesium
+                    </small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Tabel Iterasi -->
+<div class="card mb-4">
+    <div class="card-header bg-light">
+        <h5 class="mb-0"><i class="fas fa-table"></i> Tabel Iterasi</h5>
+    </div>
+    <div class="card-body table-responsive">
+        <table class="table table-bordered table-striped small">
+            <thead class="table-light">
+                <tr>
+                    <th>#</th>
+                    <th>x<sub>i</sub></th>
+                    <th>f(x<sub>i</sub>)</th>
+                    <th>Koefisien</th>
+                </tr>
+            </thead>
+            <tbody id="iterationTableBody">
+                <!-- Diisi lewat JavaScript -->
+            </tbody>
+        </table>
+    </div>
+</div>
+
+
+<script>
+let trapeziumChart = null;
+
+document.getElementById('trapeziumForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    calculateTrapezium();
+});
+
+function loadExample() {
+    document.getElementById('function').value = 'x**2 + sin(x)';
+    document.getElementById('lower_bound').value = '0';
+    document.getElementById('upper_bound').value = '3';
+    document.getElementById('n_intervals').value = '20';
+}
+
+async function calculateTrapezium() {
+    const form = document.getElementById('trapeziumForm');
+    const loading = form.querySelector('.loading');
+    const button = form.querySelector('button[type="submit"]');
+    
+    // Show loading state
+    loading.classList.add('show');
+    button.disabled = true;
+    
+    // Hide previous results
+    document.getElementById('resultCard').classList.add('d-none');
+    document.getElementById('errorCard').classList.add('d-none');
+    
+    try {
+        const data = {
+            function: document.getElementById('function').value,
+            lower_bound: parseFloat(document.getElementById('lower_bound').value),
+            upper_bound: parseFloat(document.getElementById('upper_bound').value),
+            n_intervals: parseInt(document.getElementById('n_intervals').value)
+        };
+        
+        const response = await fetch('/calculate_trapesium', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(data)
+        });
+        
+        const result = await response.json();
+        
+        if (result.error) {
+            showError(result.error);
+        } else {
+            showResults(result);
+            drawChart(result, data);
+        }
+        
+    } catch (error) {
+        showError('Terjadi kesalahan saat menghitung: ' + error.message);
+    } finally {
+        // Hide loading state
+        loading.classList.remove('show');
+        button.disabled = false;
+    }
+}
+
+function showResults(result) {
+    const resultCard = document.getElementById('resultCard');
+    
+    document.getElementById('trapResult').textContent = result.trapesium_result.toFixed(6);
+    document.getElementById('analyticalResult').textContent = 
+        result.analytical_result ? result.analytical_result.toFixed(6) : 'N/A';
+    
+    if (result.analytical_result) {
+        const absoluteError = Math.abs(result.trapesium_result - result.analytical_result);
+        const relativeError = (absoluteError / Math.abs(result.analytical_result)) * 100;
+        
+        document.getElementById('absoluteError').textContent = absoluteError.toExponential(3);
+        document.getElementById('relativeError').textContent = relativeError.toFixed(4) + '%';
+    } else {
+        document.getElementById('absoluteError').textContent = 'N/A';
+        document.getElementById('relativeError').textContent = 'N/A';
+    }
+    
+    document.getElementById('intervals').textContent = document.getElementById('n_intervals').value;
+
+    const tableBody = document.getElementById('iterationTableBody');
+    tableBody.innerHTML = '';
+    result.iteration_table.forEach(row => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td>${row.index}</td>
+            <td>${row.x.toFixed(4)}</td>
+            <td>${row.fx.toFixed(6)}</td>
+            <td>${row.coef}</td>
+        `;
+        tableBody.appendChild(tr);
+    });
+
+    
+    resultCard.classList.remove('d-none');
+}
+
+function showError(message) {
+    document.getElementById('errorMessage').textContent = message;
+    document.getElementById('errorCard').classList.remove('d-none');
+}
+
+function drawChart(result, inputData) {
+    const ctx = document.getElementById('trapeziumChart').getContext('2d');
+    
+    // Destroy existing chart
+    if (trapeziumChart) {
+        trapeziumChart.destroy();
+    }
+    
+    // Prepare data for trapezium visualization
+    const n = inputData.n_intervals;
+    const a = inputData.lower_bound;
+    const b = inputData.upper_bound;
+    const h = (b - a) / n;
+    
+    // Create trapezium points
+    const trapeziumData = [];
+    for (let i = 0; i <= n; i++) {
+        const x = a + i * h;
+        const y = result.trapezoid_points[i];
+        trapeziumData.push({x: x, y: y});
+        if (i < n) {
+            trapeziumData.push({x: x + h, y: result.trapezoid_points[i + 1]});
+        }
+    }
+    
+    // Create smooth curve data
+    const curveData = result.x_values.map((x, index) => ({
+        x: x,
+        y: result.y_values[index]
+    }));
+    
+    trapeziumChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            datasets: [
+                {
+                    label: 'Fungsi f(x)',
+                    data: curveData,
+                    borderColor: 'rgb(54, 162, 235)',
+                    backgroundColor: 'rgba(54, 162, 235, 0.1)',
+                    borderWidth: 3,
+                    fill: false,
+                    pointRadius: 0,
+                    tension: 0.1
+                },
+                {
+                    label: 'Approximasi Trapesium',
+                    data: trapeziumData,
+                    borderColor: 'rgb(75, 192, 192)',
+                    backgroundColor: 'rgba(75, 192, 192, 0.3)',
+                    borderWidth: 2,
+                    fill: true,
+                    pointRadius: 3,
+                    pointBackgroundColor: 'rgb(75, 192, 192)',
+                    stepped: false
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            interaction: {
+                intersect: false,
+                mode: 'index'
+            },
+            plugins: {
+                title: {
+                    display: true,
+                    text: `Integral dari ${inputData.function} pada interval [${a}, ${b}]`,
+                    font: {
+                        size: 16
+                    }
+                },
+                legend: {
+                    display: true,
+                    position: 'top'
+                }
+            },
+            scales: {
+                x: {
+                    type: 'linear',
+                    display: true,
+                    title: {
+                        display: true,
+                        text: 'x'
+                    },
+                    grid: {
+                        display: true,
+                        color: 'rgba(0,0,0,0.1)'
+                    }
+                },
+                y: {
+                    type: 'linear',
+                    display: true,
+                    title: {
+                        display: true,
+                        text: 'f(x)'
+                    },
+                    grid: {
+                        display: true,
+                        color: 'rgba(0,0,0,0.1)'
+                    }
+                }
+            }
+        }
+    });
+}
+
+// Load MathJax when page loads
+document.addEventListener('DOMContentLoaded', function() {
+    if (window.MathJax) {
+        MathJax.typesetPromise();
+    }
+});
+</script>
+{% endblock %}
