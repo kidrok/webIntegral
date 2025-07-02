@@ -1,0 +1,375 @@
+{% extends "base.html" %}
+{% block title %}Metode Simpson 1/3 - Kalkulator Integral Numerik{% endblock %}
+{% block content %}
+<div class="row fade-in">
+    <div class="col-12">
+        <div class="card mb-4">
+            <div class="card-header bg-success text-white">
+                <h2 class="mb-0"><i class="fas fa-chart-line"></i> Metode Simpson 1/3</h2>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-8">
+                        <p class="lead">Metode Simpson 1/3 membagi area di bawah kurva menjadi irisan parabola.</p>
+                        <div class="alert alert-info">
+                            <h6><i class="fas fa-info-circle"></i> Formula Metode Simpson 1/3:</h6>
+                            <div class="text-center my-3">
+                                $$\int_a^b f(x)dx \approx \frac{h}{3}[f(x_0) + 4\sum_{i=1,3,\dots}^{n-1}f(x_i) + 2\sum_{i=2,4,\dots}^{n-2}f(x_i) + f(x_n)]$$
+                            </div>
+                            <p class="mb-0">dimana $h = \frac{b-a}{n}$ dan n harus genap</p>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="alert alert-warning">
+                            <h6><i class="fas fa-lightbulb"></i> Tips:</h6>
+                            <ul class="mb-0">
+                                <li>Gunakan <code>np.sin(x)</code> untuk $\sin(x)$, <code>np.cos(x)</code> untuk $\cos(x)$, dst.</li>
+                                <li>Gunakan <code>x**n</code> untuk $x^n$.</li>
+                                <li><code>np.e</code> untuk $e$, <code>np.pi</code> untuk $\pi$.</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row fade-in">
+    <div class="col-lg-6 col-md-12 mb-4"> <div class="card shadow-sm">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0"><i class="fas fa-edit"></i> Input Fungsi & Parameter</h5>
+            </div>
+            <div class="card-body">
+                <form id="simpsonForm">
+                    <div class="mb-3">
+                        <label for="function" class="form-label">Fungsi f(x):</label>
+                        <input type="text" class="form-control" id="function" value="x**2" required>
+                        <small class="form-text text-muted">Contoh: x**2, np.sin(x) + 2*x</small>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="lower_bound" class="form-label">Batas Bawah (a):</label>
+                            <input type="number" step="any" class="form-control" id="lower_bound" value="0" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="upper_bound" class="form-label">Batas Atas (b):</label>
+                            <input type="number" step="any" class="form-control" id="upper_bound" value="1" required>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Pilih Input Interval:</label>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="interval_choice" id="choice_n" value="n" checked>
+                            <label class="form-check-label" for="choice_n">
+                                Jumlah Interval (n)
+                            </label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="interval_choice" id="choice_h" value="h">
+                            <label class="form-check-label" for="choice_h">
+                                Lebar Interval (h)
+                            </label>
+                        </div>
+                    </div>
+                    <div class="mb-3" id="n_input_group">
+                        <label for="n_intervals" class="form-label">Jumlah Interval (n):</label>
+                        <input type="number" step="2" class="form-control" id="n_intervals" value="10" required>
+                        <small class="form-text text-muted">Jumlah segmen untuk perhitungan (harus genap).</small>
+                    </div>
+                    <div class="mb-3" id="h_input_group" style="display:none;">
+                        <label for="h_value" class="form-label">Lebar Interval (h):</label>
+                        <input type="number" step="any" class="form-control" id="h_value" value="" placeholder="e.g. 0.1">
+                        <small class="form-text text-muted">Lebar setiap segmen (n akan dihitung dari ini dan disesuaikan menjadi genap).</small>
+                    </div>
+                    <button type="submit" class="btn btn-success w-100"><i class="fas fa-play"></i> Hitung Integral</button>
+                </form>
+                <div id="error-message" class="alert alert-danger mt-3" style="display:none;"></div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-6 col-md-12 mb-4"> <div class="card shadow-sm h-100"> <div class="card-header bg-info text-white">
+                <h5 class="mb-0"><i class="fas fa-table"></i> Tabel Iterasi</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover" id="iterationTable">
+                        <thead>
+                            <tr>
+                                <th>i</th>
+                                <th>x_i</th>
+                                <th>f(x_i)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row fade-in">
+    <div class="col-12 mb-4"> <div class="card shadow-sm">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0"><i class="fas fa-chart-bar"></i> Hasil & Grafik</h5>
+            </div>
+            <div class="card-body d-flex flex-column">
+                <div class="mb-3">
+                    <p class="fs-5 mb-1">Hasil Integral Simpson: <span class="fw-bold text-success" id="simpsonResult"></span></p>
+                    <p class="fs-5 mb-1">Hasil Analitik: <span class="fw-bold text-primary" id="analyticalResult"></span></p>
+                    <p class="fs-5 mb-1" id="nUsedDisplay"></p>
+                    <p class="fs-5 mb-1" id="hUsedDisplay"></p>
+                    <p class="fs-5 mb-1">Galat Absolut: <span class="fw-bold text-danger" id="absoluteError"></span></p>
+                    <p class="fs-5 mb-1">Galat Relatif: <span class="fw-bold text-warning" id="relativeError"></span></p>
+                </div>
+                <div class="chart-container flex-grow-1" style="min-height: 350px;"> <canvas id="simpsonChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+let simpsonChart; // Variabel global untuk Chart.js instance
+
+// Fungsi untuk menggambar atau memperbarui grafik
+// Sekarang menerima simpson_points_x dan simpson_points_y secara terpisah
+function drawChart(x_smooth, y_smooth, simpson_points_x, simpson_points_y, inputData) {
+    const ctx = document.getElementById('simpsonChart').getContext('2d');
+
+    // Hancurkan chart sebelumnya jika ada, bahkan jika data baru tidak valid
+    if (simpsonChart) {
+        simpsonChart.destroy();
+    }
+
+    // --- PENTING: Validasi data di sini ---
+    // Pastikan semua array data grafik ada dan memiliki setidaknya 2 elemen
+    if (!x_smooth || x_smooth.length < 2 || !y_smooth || y_smooth.length < 2 ||
+        !simpson_points_x || simpson_points_x.length < 2 || !simpson_points_y || simpson_points_y.length < 2) {
+        console.error("Data grafik tidak valid atau tidak lengkap. Tidak dapat menggambar grafik.");
+        // Anda bisa menampilkan pesan error yang lebih user-friendly di UI juga
+        return; // Hentikan eksekusi fungsi jika data tidak valid
+    }
+    // --- Akhir validasi data ---
+
+    // Ubah data titik Simpson ke format Chart.js menggunakan simpson_points_x dan simpson_points_y
+    const approxPoints = simpson_points_x.map((x_val, index) => ({
+        x: x_val,
+        y: simpson_points_y[index]
+    }));
+    
+    simpsonChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: x_smooth, // labels untuk sumbu X
+            datasets: [
+                {
+                    label: 'Fungsi f(x)',
+                    data: y_smooth.map((val, idx) => ({x: x_smooth[idx], y: val})), // Menggunakan format objek {x,y}
+                    borderColor: 'rgb(75, 192, 192)',
+                    borderWidth: 2,
+                    fill: false,
+                    pointRadius: 0,
+                    tension: 0.2
+                },
+                {
+                    label: 'Approximasi Simpson',
+                    data: approxPoints, // Menggunakan approxPoints yang sudah dipetakan
+                    borderColor: 'rgba(255, 99, 132, 1)',
+                    backgroundColor: 'rgba(255, 99, 132, 0.3)', // Warna area Simpson
+                    fill: 'origin', // Mengisi area di bawah garis
+                    pointRadius: 3,
+                    tension: 0.2 // Untuk kurva parabola
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false, // Penting untuk kontrol ukuran di CSS
+            hover: {
+                mode: 'nearest',
+                intersect: true
+            },
+            tooltips: { // Opsi tooltip lama
+                mode: 'index',
+                intersect: false,
+            },
+            plugins: {
+                title: {
+                    display: true,
+                    text: `Integral dari ${inputData.function} pada interval [${inputData.lower_bound}, ${inputData.upper_bound}]`,
+                    font: { size: 16 }
+                },
+                legend: {
+                    display: true,
+                    position: 'top'
+                }
+            },
+            scales: {
+                x: {
+                    type: 'linear',
+                    display: true,
+                    title: {
+                        display: true,
+                        text: 'x'
+                    },
+                    grid: {
+                        display: true,
+                        color: 'rgba(0,0,0,0.1)'
+                    }
+                },
+                y: {
+                    type: 'linear',
+                    display: true,
+                    title: {
+                        display: true,
+                        text: 'f(x)'
+                    },
+                    grid: {
+                        display: true,
+                        color: 'rgba(0,0,0,0.1)'
+                    }
+                }
+            }
+        }
+    });
+}
+
+// Event listener untuk form submission
+document.getElementById('simpsonForm').addEventListener('submit', async function(event) {
+    event.preventDefault(); // Mencegah reload halaman
+    
+    const functionStr = document.getElementById('function').value;
+    const lowerBound = parseFloat(document.getElementById('lower_bound').value);
+    const upperBound = parseFloat(document.getElementById('upper_bound').value);
+    
+    const choiceN = document.getElementById('choice_n');
+    const choiceH = document.getElementById('choice_h');
+    
+    let nIntervals = null;
+    let hValue = null;
+
+    if (choiceN.checked) {
+        nIntervals = parseInt(document.getElementById('n_intervals').value);
+    } else if (choiceH.checked) {
+        hValue = parseFloat(document.getElementById('h_value').value);
+    }
+
+    const errorMessageDiv = document.getElementById('error-message');
+    errorMessageDiv.style.display = 'none'; // Sembunyikan pesan error sebelumnya
+
+    try {
+        const response = await fetch('/calculate_simpson', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                function: functionStr,
+                lower_bound: lowerBound,
+                upper_bound: upperBound,
+                n_intervals: nIntervals,
+                h_value: hValue
+            })
+        });
+
+        const result = await response.json();
+        console.log("Response data from /calculate_simpson:", result); // Log data respons
+
+        if (response.ok) {
+            document.getElementById('simpsonResult').innerText = result.simpson_result.toFixed(6);
+            document.getElementById('analyticalResult').innerText = result.analytical_result !== null ? result.analytical_result.toFixed(6) : 'Tidak dapat dihitung analitik';
+            document.getElementById('nUsedDisplay').innerText = `Jumlah Interval (n) Digunakan: ${result.n_used}`;
+            document.getElementById('hUsedDisplay').innerText = `Lebar Interval (h) Digunakan: ${result.h_used.toFixed(6)}`;
+
+            // Hitung dan tampilkan galat
+            if (result.analytical_result !== null) {
+                const absoluteError = Math.abs(result.simpson_result - result.analytical_result);
+                document.getElementById('absoluteError').innerText = absoluteError.toFixed(6);
+
+                const relativeError = (absoluteError / Math.abs(result.analytical_result)) * 100;
+                document.getElementById('relativeError').innerText = isNaN(relativeError) || !isFinite(relativeError) ? 'N/A' : `${relativeError.toFixed(6)}%`;
+            } else {
+                document.getElementById('absoluteError').innerText = 'N/A';
+                document.getElementById('relativeError').innerText = 'N/A';
+            }
+
+            // Gambar grafik - perhatikan parameter yang diubah!
+            const inputDataForChart = {
+                function: functionStr,
+                lower_bound: lowerBound,
+                upper_bound: upperBound
+            };
+            drawChart(result.x_values, result.y_values, result.simpson_points_x, result.simpson_points_y, inputDataForChart);
+
+            // Isi tabel iterasi
+            const tableBody = document.querySelector('#iterationTable tbody');
+            tableBody.innerHTML = ''; // Kosongkan tabel
+            result.iteration_table.forEach(row => {
+                const tr = document.createElement('tr');
+                const fx_coef = row.fx * row.coef; // Hitung f(x_i) * Koefisien
+                tr.innerHTML = `
+                    <td>${row.index}</td>
+                    <td>${row.x.toFixed(6)}</td>
+                    <td>${row.fx.toFixed(6)}</td>
+                `;
+                tableBody.appendChild(tr);
+            });
+
+            if (window.MathJax) {
+                MathJax.typesetPromise(); // Render MathJax ulang setelah elemen baru ditambahkan
+            }
+
+        } else {
+            // Tampilkan pesan error dari server
+            errorMessageDiv.innerText = result.error || 'Terjadi kesalahan yang tidak diketahui dari server.';
+            errorMessageDiv.style.display = 'block';
+            // Bersihkan hasil dan grafik jika ada error
+            document.getElementById('simpsonResult').innerText = '';
+            document.getElementById('analyticalResult').innerText = '';
+            document.getElementById('nUsedDisplay').innerText = '';
+            document.getElementById('hUsedDisplay').innerText = '';
+            document.getElementById('absoluteError').innerText = '';
+            document.getElementById('relativeError').innerText = '';
+            const tableBody = document.querySelector('#iterationTable tbody');
+            tableBody.innerHTML = '';
+            if (simpsonChart) simpsonChart.destroy();
+        }
+    } catch (error) {
+        errorMessageDiv.innerText = 'Gagal menghubungi server. Pastikan aplikasi Flask berjalan dan tidak ada masalah jaringan: ' + error.message;
+        errorMessageDiv.style.display = 'block';
+        console.error('Fetch error:', error);
+    }
+});
+
+// Logic untuk menampilkan/menyembunyikan input n atau h
+document.querySelectorAll('input[name="interval_choice"]').forEach(radio => {
+    radio.addEventListener('change', function() {
+        if (this.value === 'n') {
+            document.getElementById('n_input_group').style.display = 'block';
+            document.getElementById('h_input_group').style.display = 'none';
+            document.getElementById('h_value').removeAttribute('required'); // hapus required dari h
+            document.getElementById('h_value').value = ''; // Kosongkan nilai h saat beralih ke n
+            document.getElementById('n_intervals').setAttribute('required', 'required'); // tambahkan required ke n
+        } else {
+            document.getElementById('n_input_group').style.display = 'none';
+            document.getElementById('h_input_group').style.display = 'block';
+            document.getElementById('n_intervals').removeAttribute('required'); // hapus required dari n
+            document.getElementById('n_intervals').value = ''; // Kosongkan nilai n saat beralih ke h
+            document.getElementById('h_value').setAttribute('required', 'required'); // tambahkan required ke h
+        }
+    });
+});
+
+// Load MathJax when page loads
+document.addEventListener('DOMContentLoaded', function() {
+    if (window.MathJax) {
+        MathJax.typesetPromise();
+    }
+    // Panggil event change secara manual saat DOMContentLoaded untuk mengatur tampilan awal input
+    document.querySelector('input[name="interval_choice"]:checked').dispatchEvent(new Event('change'));
+});
+</script>
+{% endblock %}
