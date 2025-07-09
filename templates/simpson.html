@@ -345,7 +345,7 @@ document.getElementById('simpsonForm').addEventListener('submit', async function
 });
 
 // Logic untuk menampilkan/menyembunyikan input n atau h
-document.querySelectorAll('input[name="interval_choice"]').forEach(radio => {
+document.querySelectorAll('input[name="interval_choice"]') .forEach(radio => {
     radio.addEventListener('change', function() {
         if (this.value === 'n') {
             document.getElementById('n_input_group').style.display = 'block';
